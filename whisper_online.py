@@ -273,8 +273,9 @@ class OnlineASRProcessor:
         """
 
         prompt, non_prompt = self.prompt()
-        print("PROMPT:", prompt, file=self.logfile)
-        print("CONTEXT:", non_prompt, file=self.logfile)
+        if prompt != "" or non_prompt != "":
+            print("PROMPT:", prompt, file=self.logfile)
+            print("CONTEXT:", non_prompt, file=self.logfile)
         # # print(f"transcribing {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f} seconds from {self.buffer_time_offset:2.2f}",file=self.logfile)
         res = self.asr.transcribe(self.audio_buffer, init_prompt=prompt)
 

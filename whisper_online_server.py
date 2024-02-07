@@ -162,7 +162,7 @@ class ServerProcessor:
             # # print("%1.0f %1.0f %s" % (beg,end,o[2]),flush=True,file=sys.stderr)
             return "%1.0f %1.0f %s" % (beg,end,o[2])
         else:
-            print(o,file=sys.stderr,flush=True)
+            # print(o,file=sys.stderr,flush=True)
             return None
 
     def send_result(self, o):
@@ -193,7 +193,7 @@ class ServerProcessor:
 
 
 # Start logging.
-level = logging.INFO
+level = logging.WARNING
 logging.basicConfig(level=level, format='whisper-server-%(levelname)s: %(message)s')
 
 # server loop
