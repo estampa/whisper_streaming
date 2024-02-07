@@ -160,7 +160,7 @@ class ServerProcessor:
 
             self.last_end = end
             # # print("%1.0f %1.0f %s" % (beg,end,o[2]),flush=True,file=sys.stderr)
-            return "%1.0f %1.0f %s" % (beg,end,o[2])
+            return "%1.0f %1.0f %s %s" % (beg,end,o[2],o[3])
         else:
             # print(o,file=sys.stderr,flush=True)
             return None

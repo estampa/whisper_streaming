@@ -126,7 +126,7 @@ class FasterWhisperASR(ASRBase):
         segments, info = self.model.transcribe(audio, language=self.original_language, initial_prompt=init_prompt, beam_size=5, word_timestamps=True, condition_on_previous_text=True, **self.transcribe_kargs)
         #print(info)  # info contains language detection result
 
-        return list(segments)
+        return list(segments), info
 
     def ts_words(self, segments):
         o = []
@@ -277,7 +277,8 @@ class OnlineASRProcessor:
             print("PROMPT:", prompt, file=self.logfile)
             print("CONTEXT:", non_prompt, file=self.logfile)
         # # print(f"transcribing {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f} seconds from {self.buffer_time_offset:2.2f}",file=self.logfile)
-        res = self.asr.transcribe(self.audio_buffer, init_prompt=prompt)
+        res, info = self.asr.transcribe(self.audio_buffer, init_prompt=prompt)
+        # print(info.language)
 
         # transform to [(beg,end,"word1"), ...]
         tsw = self.asr.ts_words(res)
@@ -314,7 +315,7 @@ class OnlineASRProcessor:
             #self.chunk_at(t)
 
         # # print(f"len of buffer now: {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f}",file=self.logfile)
-        return self.to_flush(o)
+        return self.to_flush(o, lan=info.language)
 
     def chunk_completed_sentence(self):
         if self.commited == []: return
@@ -402,7 +403,7 @@ class OnlineASRProcessor:
         return f
 
 
-    def to_flush(self, sents, sep=None, offset=0, ):
+    def to_flush(self, sents, lan=None, sep=None, offset=0, ):
         # concatenates the timestamped words or sentences into one sequence that is flushed in one line
         # sents: [(beg1, end1, "sentence1"), ...] or [] if empty
         # return: (beg1,end-of-last-sentence,"concatenation of sentences") or (None, None, "") if empty
@@ -415,7 +416,7 @@ class OnlineASRProcessor:
         else:
             b = offset + sents[0][0]
             e = offset + sents[-1][1]
-        return (b,e,t)
+        return (b,e,t,lan)
 
 WHISPER_LANG_CODES = "af,am,ar,as,az,ba,be,bg,bn,bo,br,bs,ca,cs,cy,da,de,el,en,es,et,eu,fa,fi,fo,fr,gl,gu,ha,haw,he,hi,hr,ht,hu,hy,id,is,it,ja,jw,ka,kk,km,kn,ko,la,lb,ln,lo,lt,lv,mg,mi,mk,ml,mn,mr,ms,mt,my,ne,nl,nn,no,oc,pa,pl,ps,pt,ro,ru,sa,sd,si,sk,sl,sn,so,sq,sr,su,sv,sw,ta,te,tg,th,tk,tl,tr,tt,uk,ur,uz,vi,yi,yo,zh".split(",")
 
