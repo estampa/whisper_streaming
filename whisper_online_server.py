@@ -199,17 +199,21 @@ logging.basicConfig(level=level, format='whisper-server-%(levelname)s: %(message
 # server loop
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((args.host, args.port))
-    s.listen(1)
-    logging.info('INFO: Listening on'+str((args.host, args.port)))
-    while True:
-        conn, addr = s.accept()
-        logging.info('INFO: Connected to client on {}'.format(addr))
-        connection = Connection(conn)
-        proc = ServerProcessor(connection, online, min_chunk)
-        proc.process()
-        conn.close()
-        logging.info('INFO: Connection to client closed')
-logging.info('INFO: Connection closed, terminating.')
+    try:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((args.host, args.port))
+        s.listen(1)
+        logging.info('INFO: Listening on'+str((args.host, args.port)))
+        while True:
+            conn, addr = s.accept()
+            logging.info('INFO: Connected to client on {}'.format(addr))
+            connection = Connection(conn)
+            proc = ServerProcessor(connection, online, min_chunk)
+            proc.process()
+            conn.close()
+            logging.info('INFO: Connection to client closed')
+    except Exception as e:
+        logging.error('ERROR: An error occurred: {}'.format(e))
+    finally:
+        logging.info('INFO: Connection closed, terminating.')
+        s.close()
