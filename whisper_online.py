@@ -179,9 +179,10 @@ class HypothesisBuffer:
                         c = " ".join([self.commited_in_buffer[-j][2] for j in range(1,i+1)][::-1])
                         tail = " ".join(self.new[j-1][2] for j in range(1,i+1))
                         if c == tail:
-                            print("removing last",i,"words:",file=self.logfile)
+                            # # print("removing last",i,"words:",file=self.logfile)
                             for j in range(i):
-                                print("\t",self.new.pop(0),file=self.logfile)
+                                # # print("\t",self.new.pop(0),file=self.logfile)
+                                self.new.pop(0)
                             break
 
     def flush(self):
@@ -218,7 +219,7 @@ class OnlineASRProcessor:
 
     SAMPLING_RATE = 16000
 
-    def __init__(self, asr, tokenizer=None, buffer_trimming=("segment", 15), logfile=sys.stderr):
+    def __init__(self, asr, tokenizer=None, buffer_trimming=("segment", 15), logfile=sys.stderr, verbose=True):
         """asr: WhisperASR object
         tokenizer: sentence tokenizer object for the target language. Must have a method *split* that behaves like the one of MosesTokenizer. It can be None, if "segment" buffer trimming option is used, then tokenizer is not used at all.
         ("segment", 15)
@@ -228,6 +229,7 @@ class OnlineASRProcessor:
         self.asr = asr
         self.tokenizer = tokenizer
         self.logfile = logfile
+        self.verbose = verbose
 
         self.init()
 
@@ -243,6 +245,10 @@ class OnlineASRProcessor:
         self.last_chunked_at = 0
 
         self.silence_iters = 0
+
+    def print(self, *args, **kwargs):
+        if self.verbose:
+            print(*args, **kwargs)
 
     def insert_audio_chunk(self, audio):
         self.audio_buffer = np.append(self.audio_buffer, audio)
@@ -274,8 +280,8 @@ class OnlineASRProcessor:
 
         prompt, non_prompt = self.prompt()
         if prompt != "" or non_prompt != "":
-            print("PROMPT:", prompt, file=self.logfile)
-            print("CONTEXT:", non_prompt, file=self.logfile)
+            self.print("PROMPT:", prompt, file=self.logfile)
+            self.print("CONTEXT:", non_prompt, file=self.logfile)
         # # print(f"transcribing {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f} seconds from {self.buffer_time_offset:2.2f}",file=self.logfile)
         res, info = self.asr.transcribe(self.audio_buffer, init_prompt=prompt)
         # print(info.language)
@@ -319,10 +325,10 @@ class OnlineASRProcessor:
 
     def chunk_completed_sentence(self):
         if self.commited == []: return
-        print(self.commited,file=self.logfile)
+        self.print(self.commited,file=self.logfile)
         sents = self.words_to_sentences(self.commited)
         for s in sents:
-            print("\t\tSENT:",s,file=self.logfile)
+            self.print("\t\tSENT:",s,file=self.logfile)
         if len(sents) < 2:
             return
         while len(sents) > 2:
@@ -330,7 +336,7 @@ class OnlineASRProcessor:
         # we will continue with audio processing at this timestamp
         chunk_at = sents[-2][1]
 
-        print(f"--- sentence chunked at {chunk_at:2.2f}",file=self.logfile)
+        self.print(f"--- sentence chunked at {chunk_at:2.2f}",file=self.logfile)
         self.chunk_at(chunk_at)
 
     def chunk_completed_segment(self, res):
@@ -347,12 +353,12 @@ class OnlineASRProcessor:
                 ends.pop(-1)
                 e = ends[-2]+self.buffer_time_offset
             if e <= t:
-                print(f"--- segment chunked at {e:2.2f}",file=self.logfile)
+                self.print(f"--- segment chunked at {e:2.2f}",file=self.logfile)
                 self.chunk_at(e)
             else:
-                print(f"--- last segment not within commited area",file=self.logfile)
+                self.print(f"--- last segment not within commited area",file=self.logfile)
         else:
-            print(f"--- not enough segments to chunk",file=self.logfile)
+            self.print(f"--- not enough segments to chunk",file=self.logfile)
 
 
 
@@ -399,7 +405,7 @@ class OnlineASRProcessor:
         """
         o = self.transcript_buffer.complete()
         f = self.to_flush(o)
-        print("last, noncommited:",f,file=self.logfile)
+        self.print("last, noncommited:",f,file=self.logfile)
         return f
 
 
