@@ -321,6 +321,10 @@ class OnlineASRProcessor:
             # # print(f"chunking segment",file=self.logfile)
             #self.chunk_at(t)
 
+        # If audio buffer is still longer than s, hard chunk it to avoid it getting bigger with silence
+        if len(self.audio_buffer)/self.SAMPLING_RATE > s:
+            self.hard_chunk(s)
+
         # # print(f"len of buffer now: {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f}",file=self.logfile)
         return self.to_flush(o, lan=info.language, lans=info.all_language_probs[:3])
 
@@ -361,9 +365,14 @@ class OnlineASRProcessor:
         else:
             self.print(f"--- not enough segments to chunk",file=self.logfile)
 
+    def hard_chunk(self, length):
+        """chunks the audio buffer at the given duration"""
+        buffer_duration = len(self.audio_buffer)/self.SAMPLING_RATE
 
+        cut_time = self.buffer_time_offset + (buffer_duration - length)
 
-
+        self.chunk_at(cut_time)
+        # print(f"chunking at {cut_time} (len: {len(self.audio_buffer)/self.SAMPLING_RATE})")
 
     def chunk_at(self, time):
         """trims the hypothesis and audio buffer at "time"
