@@ -220,7 +220,7 @@ class OnlineASRProcessor:
 
     SAMPLING_RATE = 16000
 
-    def __init__(self, asr, tokenizer=None, buffer_trimming=("segment", 15), logfile=sys.stderr, verbose=True):
+    def __init__(self, asr, tokenizer=None, buffer_trimming=("segment", 15), silence_trimming=None, logfile=sys.stderr, verbose=True):
         """asr: WhisperASR object
         tokenizer: sentence tokenizer object for the target language. Must have a method *split* that behaves like the one of MosesTokenizer. It can be None, if "segment" buffer trimming option is used, then tokenizer is not used at all.
         ("segment", 15)
@@ -235,6 +235,7 @@ class OnlineASRProcessor:
         self.init()
 
         self.buffer_trimming_way, self.buffer_trimming_sec = buffer_trimming
+        self.silence_trimming = silence_trimming
 
     def init(self):
         """run this when starting or restarting processing"""
@@ -297,6 +298,13 @@ class OnlineASRProcessor:
         # # print("INCOMPLETE:",self.to_flush(self.transcript_buffer.complete()),file=self.logfile,flush=True)
 
         # there is a newly confirmed text
+
+        last_silence_length = info.duration - info.duration_after_vad
+        # If there is a silence of more than X seconds, clear the buffer
+        if self.silence_trimming and last_silence_length > self.silence_trimming:
+            print("silence buffer clear")
+            buffer_length = len(self.audio_buffer)/self.SAMPLING_RATE
+            self.chunk_at(self.buffer_time_offset + buffer_length)
 
         if o and self.buffer_trimming_way == "sentence":  # trim the completed sentences
             if len(self.audio_buffer)/self.SAMPLING_RATE > self.buffer_trimming_sec:  # longer than this
