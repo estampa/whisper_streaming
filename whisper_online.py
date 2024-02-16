@@ -127,7 +127,7 @@ class FasterWhisperASR(ASRBase):
         segments, info = self.model.transcribe(audio, language=self.original_language, initial_prompt=init_prompt,
                                                beam_size=5, word_timestamps=True, condition_on_previous_text=True,
                                                compression_ratio_threshold=10000, log_prob_threshold=-10000,
-                                               vad_parameters=dict(threshold=0.8), **self.transcribe_kargs)
+                                               vad_parameters=dict(threshold=0.9), **self.transcribe_kargs)
         #print(info)  # info contains language detection result
 
         return list(segments), info
