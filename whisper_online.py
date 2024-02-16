@@ -302,7 +302,11 @@ class OnlineASRProcessor:
 
         # there is a newly confirmed text
 
-        last_silence_length = info.duration - info.duration_after_vad
+        # If there is only silence, chunk it
+        if info.duration_after_vad == 0.0:
+            buffer_length = len(self.audio_buffer)/self.SAMPLING_RATE
+            self.chunk_at(self.buffer_time_offset + buffer_length)
+
         # If there is a silence of more than X seconds, clear the buffer
         buffer_silence_length = info.duration - info.duration_after_vad
         if self.silence_trimming and buffer_silence_length > self.silence_trimming:
