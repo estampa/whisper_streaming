@@ -322,7 +322,7 @@ class OnlineASRProcessor:
         if self.buffer_trimming_way == "segment":
             s = self.buffer_trimming_sec  # trim the completed segments longer than s,
         else:
-            s = 30 # if the audio buffer is longer than 30s, trim it
+            s = 20 # if the audio buffer is longer than 20s, trim it
         
         if len(self.audio_buffer)/self.SAMPLING_RATE > s:
             self.chunk_completed_segment(res)
