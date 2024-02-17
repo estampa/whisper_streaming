@@ -310,7 +310,7 @@ class OnlineASRProcessor:
         # If there is a silence of more than X seconds, clear the buffer
         buffer_silence_length = info.duration - info.duration_after_vad
         if self.silence_trimming and buffer_silence_length > self.silence_trimming:
-            print("silence buffer clear")
+            # print("silence buffer clear")
             buffer_length = len(self.audio_buffer)/self.SAMPLING_RATE
             self.chunk_at(self.buffer_time_offset + buffer_length)
 
